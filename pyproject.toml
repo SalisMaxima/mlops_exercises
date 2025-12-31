@@ -58,5 +58,8 @@ explicit = true
 line-length = 120
 lint.select = ["I"]
 
+[tool.ruff.lint.isort]
+known-first-party = ["data", "model"]
+
 [tool.coverage.run]
 omit = ["tests/*"]
