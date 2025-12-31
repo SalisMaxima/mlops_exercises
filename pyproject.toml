@@ -41,17 +41,28 @@ dev = [
 ]
 
 
+# Platform-specific PyTorch configuration
+# Linux: CUDA 13.0 from pytorch index
+# macOS: CPU-only from pytorch-cpu index (fallback when CUDA not available)
+
 [tool.uv.sources]
 torch = [
-    { index = "pytorch-cu130" },
+    { index = "pytorch-cu130", marker = "sys_platform == 'linux'" },
+    { index = "pytorch-cpu", marker = "sys_platform == 'darwin'" },
 ]
 torchvision = [
-    { index = "pytorch-cu130" },
+    { index = "pytorch-cu130", marker = "sys_platform == 'linux'" },
+    { index = "pytorch-cpu", marker = "sys_platform == 'darwin'" },
 ]
 
 [[tool.uv.index]]
 name = "pytorch-cu130"
 url = "https://download.pytorch.org/whl/cu130"
+explicit = true
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
 explicit = true
 
 [tool.ruff]
