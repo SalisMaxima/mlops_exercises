@@ -1,4 +1,6 @@
 [core]
-    remote = storage
+    remote = gcs_storage
 ['remote "storage"']
     url = gdrive://1UxIw0ejlqb-HtnKElyU5tuf5ytSwtJ3L
+['remote "gcs_storage"']
+    url = gs://dtu-mlops-dvc-storage-482907/dvc-data
