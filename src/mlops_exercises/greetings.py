@@ -4,7 +4,8 @@ import typer
 
 app = typer.Typer()
 
-#Hello world command with multiple arguments and options using typer
+
+# Hello world command with multiple arguments and options using typer
 @app.command()
 def greet(name: str = None, count: int = 1) -> None:
     """
@@ -20,6 +21,7 @@ def greet(name: str = None, count: int = 1) -> None:
     else:
         for _ in range(count):
             typer.echo("Hello, World!")
+
 
 if __name__ == "__main__":
     app()
