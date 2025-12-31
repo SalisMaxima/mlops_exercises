@@ -74,3 +74,9 @@ known-first-party = ["data", "model"]
 
 [tool.coverage.run]
 omit = ["tests/*"]
+
+[project.scripts]
+train = "mlops_exercises.train:app"
+evaluate = "mlops_exercises.evaluate:app"
+visualize = "mlops_exercises.visualize:app"
+greetings = "mlops_exercises.greetings:app"
