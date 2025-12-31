@@ -1,8 +1,9 @@
 from pathlib import Path
 
 import torch
-from mlops_exercises.data import CorruptMNIST
 from torch.utils.data import Dataset
+
+from mlops_exercises.data import CorruptMNIST
 
 REAL_DATA_PATH = Path("data/processed")
 
