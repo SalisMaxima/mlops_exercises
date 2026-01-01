@@ -9,6 +9,15 @@ PYTHON_VERSION = "3.12"
 
 # Environment commands
 @task
+def bootstrap(ctx: Context, name: str = ".venv") -> None:
+    """Bootstrap a UV virtual environment and install dependencies."""
+    ctx.run(f"uv venv {name}", echo=True, pty=not WINDOWS)
+    ctx.run("uv sync", echo=True, pty=not WINDOWS)
+    print(f"\n✓ Environment created at {name}")
+    print(f"To activate: source {name}/bin/activate  (or {name}\\Scripts\\activate on Windows)")
+
+
+@task
 def sync(ctx: Context) -> None:
     """Install/sync all dependencies."""
     ctx.run("uv sync", echo=True, pty=not WINDOWS)
@@ -72,11 +81,12 @@ def serve_docs(ctx: Context) -> None:
     ctx.run("uv run mkdocs serve --config-file docs/mkdocs.yaml", echo=True, pty=not WINDOWS)
 
 
-#Git commands
+# Git commands
 @task
 def git_status(ctx: Context) -> None:
     """Show git status."""
     ctx.run("git status", echo=True, pty=not WINDOWS)
+
 
 @task
 def git(ctx: Context, message: str) -> None:
@@ -84,4 +94,34 @@ def git(ctx: Context, message: str) -> None:
     ctx.run("git add .", echo=True, pty=not WINDOWS)
     ctx.run(f'git commit -m "{message}"', echo=True, pty=not WINDOWS)
     ctx.run("git push", echo=True, pty=not WINDOWS)
+
+
+# DVC commands
+@task
+def dvc_add(ctx: Context, folder: str, message: str) -> None:
+    """Add data to DVC and push to remote storage.
+
+    Args:
+        folder: Path to the folder or file to add to DVC
+        message: Commit message for the changes
+
+    Example:
+        invoke dvc-add --folder data/raw --message "Add new training data"
+    """
+    print(f"Adding {folder} to DVC...")
+    ctx.run(f"dvc add {folder}", echo=True, pty=not WINDOWS)
+
+    print(f"\nStaging DVC files in git...")
+    ctx.run(f"git add {folder}.dvc .gitignore", echo=True, pty=not WINDOWS)
+
+    print(f"\nCommitting changes...")
+    ctx.run(f'git commit -m "{message}"', echo=True, pty=not WINDOWS)
+
+    print(f"\nPushing to git remote...")
+    ctx.run("git push", echo=True, pty=not WINDOWS)
+
+    print(f"\nPushing data to DVC remote...")
+    ctx.run("dvc push", echo=True, pty=not WINDOWS)
+
+    print(f"\n✓ Successfully added {folder} to DVC and pushed to remotes!")
 
