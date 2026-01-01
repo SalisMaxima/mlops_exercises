@@ -19,7 +19,13 @@ def dev(ctx: Context) -> None:
     """Install with dev dependencies."""
     ctx.run("uv sync --dev", echo=True, pty=not WINDOWS)
 
-
+#Check python path and version
+@task
+def python(ctx):
+    """ """
+    ctx.run("which python" if os.name != "nt" else "where python")
+    ctx.run("python --version")
+    
 # Project commands
 @task
 def preprocess_data(ctx: Context) -> None:
@@ -64,3 +70,18 @@ def build_docs(ctx: Context) -> None:
 def serve_docs(ctx: Context) -> None:
     """Serve documentation."""
     ctx.run("uv run mkdocs serve --config-file docs/mkdocs.yaml", echo=True, pty=not WINDOWS)
+
+
+#Git commands
+@task
+def git_status(ctx: Context) -> None:
+    """Show git status."""
+    ctx.run("git status", echo=True, pty=not WINDOWS)
+
+@task
+def git(ctx: Context, message: str) -> None:
+    """Commit and push changes to git."""
+    ctx.run("git add .", echo=True, pty=not WINDOWS)
+    ctx.run(f'git commit -m "{message}"', echo=True, pty=not WINDOWS)
+    ctx.run("git push", echo=True, pty=not WINDOWS)
+
