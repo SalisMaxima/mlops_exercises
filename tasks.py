@@ -57,6 +57,14 @@ def test(ctx: Context) -> None:
     ctx.run("uv run coverage report -m -i", echo=True, pty=not WINDOWS)
 
 
+# Code quality commands
+@task
+def ruff(ctx: Context) -> None:
+    """Run ruff check and format."""
+    ctx.run("uv run ruff check .", echo=True, pty=not WINDOWS)
+    ctx.run("uv run ruff format .", echo=True, pty=not WINDOWS)
+
+
 @task
 def docker_build(ctx: Context, progress: str = "plain") -> None:
     """Build docker images."""
