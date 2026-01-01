@@ -28,13 +28,15 @@ def dev(ctx: Context) -> None:
     """Install with dev dependencies."""
     ctx.run("uv sync --dev", echo=True, pty=not WINDOWS)
 
-#Check python path and version
+
+# Check python path and version
 @task
 def python(ctx):
     """ """
     ctx.run("which python" if os.name != "nt" else "where python")
     ctx.run("python --version")
-    
+
+
 # Project commands
 @task
 def preprocess_data(ctx: Context) -> None:
@@ -124,4 +126,3 @@ def dvc_add(ctx: Context, folder: str, message: str) -> None:
     ctx.run("dvc push", echo=True, pty=not WINDOWS)
 
     print(f"\n✓ Successfully added {folder} to DVC and pushed to remotes!")
-
