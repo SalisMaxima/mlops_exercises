@@ -176,6 +176,11 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
 
-#Torch 
+#Torch
 *.pt
+*.pth
+*.ckpt
 /data
+
+# Generated reports and figures
+reports/figures/*.png
