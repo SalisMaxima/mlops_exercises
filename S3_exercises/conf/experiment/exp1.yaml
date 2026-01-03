@@ -1,0 +1,10 @@
+# @package _global_
+# Experiment 1: Larger latent dimension
+
+# Override model parameters
+model:
+  latent_dim: 32  # Increased from 20 to 32
+
+# Override training parameters
+training:
+  num_epochs: 15  # Reduced epochs for faster experimentation

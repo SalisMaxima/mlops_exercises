@@ -186,10 +186,17 @@ cython_debug/
 /data
 
 # Generated reports and figures
-reports/figures/*.png
+*.png
+*.jpg
+*.jpeg
+*.gif
+
 
 #docs/course
 docs/course/
 
 #Claude
 CLAUDE.md
+
+# Hydra outputs
+S3_exercises/outputs/

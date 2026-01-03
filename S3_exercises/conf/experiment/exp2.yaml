@@ -1,0 +1,15 @@
+# @package _global_
+# Experiment 2: Different learning rate and longer training
+
+# Override model parameters
+model:
+  latent_dim: 16  # Smaller latent dimension
+  hidden_dim: 512  # Larger hidden dimension
+
+# Override optimizer parameters
+optimizer:
+  lr: 5e-4  # Lower learning rate
+
+# Override training parameters
+training:
+  num_epochs: 30  # More epochs for convergence

@@ -1,0 +1,13 @@
+# @package _global_
+# Experiment 3: Using SGD optimizer with different hyperparameters
+
+defaults:
+  - override /optimizer: sgd  # Use SGD instead of Adam
+
+# Override optimizer parameters
+optimizer:
+  lr: 5e-3  # Higher learning rate for SGD
+
+# Override training parameters
+training:
+  num_epochs: 25
