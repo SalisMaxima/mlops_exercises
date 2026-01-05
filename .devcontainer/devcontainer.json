@@ -5,8 +5,7 @@
     // Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
     "image": "mcr.microsoft.com/devcontainers/python:3.12-bullseye",
     "features": {
-        "ghcr.io/devcontainers/features/github-cli:1": {},
-        "ghcr.io/devcontainers/features/gcloud:1": {}
+        "ghcr.io/devcontainers/features/github-cli:1": {}
     },
 
     // Use 'postCreateCommand' to run commands after the container is created.
