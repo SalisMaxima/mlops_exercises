@@ -6,7 +6,7 @@ echo "==> Setting up mlops_exercises devcontainer..."
 # Install uv
 echo "==> Installing uv..."
 curl -LsSf https://astral.sh/uv/install.sh | sh
-source $HOME/.cargo/env
+export PATH="$HOME/.local/bin:$PATH"
 
 # Install Dependencies
 echo "==> Installing Python dependencies..."
