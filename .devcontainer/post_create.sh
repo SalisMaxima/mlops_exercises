@@ -8,9 +8,15 @@ echo "==> Installing uv..."
 curl -LsSf https://astral.sh/uv/install.sh | sh
 export PATH="$HOME/.local/bin:$PATH"
 
-# Install Dependencies
-echo "==> Installing Python dependencies..."
-uv sync --dev
+# Check for GPU availability
+if command -v nvidia-smi &> /dev/null && nvidia-smi &> /dev/null; then
+    echo "==> NVIDIA GPU detected, installing CUDA PyTorch..."
+    uv sync --dev
+else
+    echo "==> No GPU detected, installing CPU-only PyTorch..."
+    # Override torch sources to use CPU-only index
+    UV_INDEX_PYTORCH_CU130_URL="https://download.pytorch.org/whl/cpu" uv sync --dev
+fi
 
 # Install pre-commit hooks
 echo "==> Installing pre-commit hooks..."
