@@ -1,0 +1,12 @@
+# MNIST CNN Main Configuration
+
+defaults:
+  - _self_
+  - model: cnn
+  - training: default
+  - optimizer: adam
+
+# Paths
+paths:
+  model_dir: "models"
+  figures_dir: "reports/figures"
