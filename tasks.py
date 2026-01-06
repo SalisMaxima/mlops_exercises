@@ -130,16 +130,16 @@ def dvc_add(ctx: Context, folder: str, message: str) -> None:
     print(f"Adding {folder} to DVC...")
     ctx.run(f"dvc add {folder}", echo=True, pty=not WINDOWS)
 
-    print(f"\nStaging DVC files in git...")
+    print("\nStaging DVC files in git...")
     ctx.run(f"git add {folder}.dvc .gitignore", echo=True, pty=not WINDOWS)
 
-    print(f"\nCommitting changes...")
+    print("\nCommitting changes...")
     ctx.run(f'git commit -m "{message}"', echo=True, pty=not WINDOWS)
 
-    print(f"\nPushing to git remote...")
+    print("\nPushing to git remote...")
     ctx.run("git push", echo=True, pty=not WINDOWS)
 
-    print(f"\nPushing data to DVC remote...")
+    print("\nPushing data to DVC remote...")
     ctx.run("dvc push", echo=True, pty=not WINDOWS)
 
     print(f"\n✓ Successfully added {folder} to DVC and pushed to remotes!")

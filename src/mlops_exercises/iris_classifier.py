@@ -48,7 +48,7 @@ def svm(
     report = classification_report(y_test, y_pred)
 
     # Print the results
-    print(f"Training completed!")
+    print("Training completed!")
     print(f"Accuracy: {accuracy:.2f}")
     print("Classification Report:")
     print(report)
@@ -93,7 +93,7 @@ def knn(
     report = classification_report(y_test, y_pred)
 
     # Print the results
-    print(f"Training completed!")
+    print("Training completed!")
     print(f"Accuracy: {accuracy:.2f}")
     print("Classification Report:")
     print(report)
@@ -146,7 +146,7 @@ def evaluate(model_path: str = typer.Argument(..., help="Path to the saved model
     report = classification_report(y_test, y_pred)
 
     # Print the results
-    print(f"\nEvaluation Results:")
+    print("\nEvaluation Results:")
     print(f"Accuracy: {accuracy:.2f}")
     print("Classification Report:")
     print(report)

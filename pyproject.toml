@@ -7,7 +7,7 @@ name = "mlops_exercises"
 version = "0.0.1"
 description = "DTU MLOps course exercises"
 authors = [
-  { name = "Mathias Herl\u00f8v Lund", email = "your@email.com" },
+  { name = "Mathias Herløv Lund", email = "mathiashl@pm.me" },
 ]
 license = { file = "LICENSE" }
 keywords = ["machine learning", "MLOps"]
@@ -72,10 +72,38 @@ explicit = true
 
 [tool.ruff]
 line-length = 120
-lint.select = ["I"]
+target-version = "py312"
+
+[tool.ruff.lint]
+select = [
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # Pyflakes (undefined vars, unused imports)
+    "I",    # isort (import sorting)
+    "UP",   # pyupgrade (modern Python syntax)
+    "B",    # flake8-bugbear (common bugs/design problems)
+    "SIM",  # flake8-simplify (simplify code)
+    "PTH",  # flake8-use-pathlib (use pathlib over os.path)
+    "NPY",  # NumPy-specific rules (deprecated APIs)
+    "C4",   # flake8-comprehensions (better comprehensions)
+    "RET",  # flake8-return (good return practices)
+]
+ignore = [
+    "E501",  # line too long (handled by formatter)
+]
 
 [tool.ruff.lint.isort]
-known-first-party = ["data", "model"]
+known-first-party = ["mlops_exercises"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*.py" = ["D100", "D103"]
+"S3_exercises/*.py" = ["ALL"]
+"S4_exercises/*.py" = ["ALL"]
+"final_exercise/*.py" = ["ALL"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
 
 [tool.coverage.run]
 omit = ["tests/*"]
