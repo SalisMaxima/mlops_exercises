@@ -5,27 +5,35 @@ from torch import nn
 class MyAwesomeModel(nn.Module):
     """CNN for corrupted MNIST classification."""
 
-    def __init__(self) -> None:
+    def __init__(
+        self,
+        conv_channels: list[int] = [32, 64, 128],
+        fc_hidden: int = 256,
+        dropout: float = 0.5,
+        kernel_size: int = 3,
+    ) -> None:
         super().__init__()
+
+        c1, c2, c3 = conv_channels
 
         self.conv_layers = nn.Sequential(
             # Input: [batch, 1, 28, 28]
-            nn.Conv2d(1, 32, kernel_size=3, padding=1),  # -> [batch, 32, 28, 28]
+            nn.Conv2d(1, c1, kernel_size=kernel_size, padding=1),  # -> [batch, c1, 28, 28]
             nn.ReLU(),
-            nn.MaxPool2d(2),  # -> [batch, 32, 14, 14]
-            nn.Conv2d(32, 64, kernel_size=3, padding=1),  # -> [batch, 64, 14, 14]
+            nn.MaxPool2d(2),  # -> [batch, c1, 14, 14]
+            nn.Conv2d(c1, c2, kernel_size=kernel_size, padding=1),  # -> [batch, c2, 14, 14]
             nn.ReLU(),
-            nn.MaxPool2d(2),  # -> [batch, 64, 7, 7]
-            nn.Conv2d(64, 128, kernel_size=3, padding=1),  # -> [batch, 128, 7, 7]
+            nn.MaxPool2d(2),  # -> [batch, c2, 7, 7]
+            nn.Conv2d(c2, c3, kernel_size=kernel_size, padding=1),  # -> [batch, c3, 7, 7]
             nn.ReLU(),
         )
 
         self.fc_layers = nn.Sequential(
-            nn.Flatten(),  # -> [batch, 128*7*7]
-            nn.Linear(128 * 7 * 7, 256),
+            nn.Flatten(),  # -> [batch, c3*7*7]
+            nn.Linear(c3 * 7 * 7, fc_hidden),
             nn.ReLU(),
-            nn.Dropout(0.5),
-            nn.Linear(256, 10),  # -> [batch, 10] (10 digits)
+            nn.Dropout(dropout),
+            nn.Linear(fc_hidden, 10),  # -> [batch, 10] (10 digits)
         )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:

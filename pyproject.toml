@@ -21,6 +21,7 @@ dependencies = [
     "dvc>=3.0.0",
     "dvc-gs>=3.0.0",
     "fastapi==0.128.0",
+    "hydra-core>=1.3.0",
     "matplotlib>=3.7.0",
     "numpy>=1.24.0",
     "scikit-learn>=1.3.0",
@@ -78,7 +79,7 @@ known-first-party = ["data", "model"]
 omit = ["tests/*"]
 
 [project.scripts]
-train = "mlops_exercises.train:app"
+train = "mlops_exercises.train:train"
 evaluate = "mlops_exercises.evaluate:app"
 visualize = "mlops_exercises.visualize:app"
 greetings = "mlops_exercises.greetings:app"

@@ -1,0 +1,4 @@
+# Training Configuration
+batch_size: 32
+epochs: 10
+seed: 42

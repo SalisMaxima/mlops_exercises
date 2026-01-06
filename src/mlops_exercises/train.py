@@ -1,37 +1,65 @@
+import logging
 from pathlib import Path
 
+import hydra
 import matplotlib.pyplot as plt
 import torch
-import typer
+from omegaconf import DictConfig
 
 from mlops_exercises.data import corrupt_mnist
 from mlops_exercises.model import MyAwesomeModel
 
-DEVICE = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu")
-
-app = typer.Typer()
+log = logging.getLogger(__name__)
 
 
-@app.command()
-def train(lr: float = 1e-3, batch_size: int = 32, epochs: int = 10) -> None:
+def get_device() -> torch.device:
+    """Get the best available device."""
+    if torch.cuda.is_available():
+        return torch.device("cuda")
+    elif torch.backends.mps.is_available():
+        return torch.device("mps")
+    return torch.device("cpu")
+
+
+@hydra.main(config_path="../../configs", config_name="config", version_base=None)
+def train(cfg: DictConfig) -> None:
     """Train a model on MNIST."""
-    print(f"Training on {DEVICE}")
-    print(f"{lr=}, {batch_size=}, {epochs=}")
+    device = get_device()
+    log.info(f"Training on {device}")
+    log.info(f"Configuration:\n{cfg}")
 
-    model = MyAwesomeModel().to(DEVICE)
+    # Set seed for reproducibility
+    torch.manual_seed(cfg.training.seed)
+    if device.type == "cuda":
+        torch.cuda.manual_seed(cfg.training.seed)
+
+    # Initialize model with config parameters
+    model = MyAwesomeModel(
+        conv_channels=list(cfg.model.conv_channels),
+        fc_hidden=cfg.model.fc_hidden,
+        dropout=cfg.model.dropout,
+        kernel_size=cfg.model.kernel_size,
+    ).to(device)
+    log.info(f"Model:\n{model}")
+
+    # Load data
     train_set, _ = corrupt_mnist()
+    train_dataloader = torch.utils.data.DataLoader(
+        train_set, batch_size=cfg.training.batch_size, shuffle=True
+    )
 
-    train_dataloader = torch.utils.data.DataLoader(train_set, batch_size=batch_size, shuffle=True)
-
+    # Loss and optimizer
     loss_fn = torch.nn.CrossEntropyLoss()
-    optimizer = torch.optim.Adam(model.parameters(), lr=lr)
+    optimizer = hydra.utils.instantiate(cfg.optimizer, params=model.parameters())
+    log.info(f"Using optimizer: {optimizer.__class__.__name__}")
 
     statistics = {"train_loss": [], "train_accuracy": []}
 
-    for epoch in range(epochs):
+    # Training loop
+    for epoch in range(cfg.training.epochs):
         model.train()
         for i, (img, target) in enumerate(train_dataloader):
-            img, target = img.to(DEVICE), target.to(DEVICE)
+            img, target = img.to(device), target.to(device)
 
             optimizer.zero_grad()
             y_pred = model(img)
@@ -44,26 +72,27 @@ def train(lr: float = 1e-3, batch_size: int = 32, epochs: int = 10) -> None:
             statistics["train_accuracy"].append(accuracy)
 
             if i % 100 == 0:
-                print(f"Epoch {epoch}, iter {i}, loss: {loss.item():.4f}, acc: {accuracy:.4f}")
+                log.info(f"Epoch {epoch}, iter {i}, loss: {loss.item():.4f}, acc: {accuracy:.4f}")
 
-    print("Training complete")
+    log.info("Training complete")
 
-    model_path = Path("models/model.pth")
-    model_path.parent.mkdir(parents=True, exist_ok=True)
+    # Save model (use Hydra output dir)
+    output_dir = hydra.core.hydra_config.HydraConfig.get().runtime.output_dir
+    model_path = Path(output_dir) / "model.pth"
     torch.save(model.state_dict(), model_path)
-    print(f"Model saved to {model_path}")
+    log.info(f"Model saved to {model_path}")
 
+    # Save training plots
     fig, axs = plt.subplots(1, 2, figsize=(15, 5))
     axs[0].plot(statistics["train_loss"])
     axs[0].set_title("Train loss")
     axs[1].plot(statistics["train_accuracy"])
     axs[1].set_title("Train accuracy")
 
-    figures_path = Path("reports/figures/training_statistics.png")
-    figures_path.parent.mkdir(parents=True, exist_ok=True)
+    figures_path = Path(output_dir) / "training_statistics.png"
     fig.savefig(figures_path)
-    print(f"Training plot saved to {figures_path}")
+    log.info(f"Training plot saved to {figures_path}")
 
 
 if __name__ == "__main__":
-    app()
+    train()

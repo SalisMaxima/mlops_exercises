@@ -1,0 +1,5 @@
+# CNN Model Configuration
+conv_channels: [32, 64, 128]
+fc_hidden: 256
+dropout: 0.5
+kernel_size: 3
