@@ -14,10 +14,14 @@ log = logging.getLogger(__name__)
 
 def get_device() -> torch.device:
     """Get the best available device."""
+    # Device priority: CUDA > MPS > CPU
+    # Check for CUDA
     if torch.cuda.is_available():
         return torch.device("cuda")
-    elif torch.backends.mps.is_available():
+    # Check for MPS (Apple Silicon)
+    if torch.backends.mps.is_available():
         return torch.device("mps")
+    # Default to CPU if no other device is available
     return torch.device("cpu")
 
 
@@ -44,9 +48,7 @@ def train(cfg: DictConfig) -> None:
 
     # Load data
     train_set, _ = corrupt_mnist()
-    train_dataloader = torch.utils.data.DataLoader(
-        train_set, batch_size=cfg.training.batch_size, shuffle=True
-    )
+    train_dataloader = torch.utils.data.DataLoader(train_set, batch_size=cfg.training.batch_size, shuffle=True)
 
     # Loss and optimizer
     loss_fn = torch.nn.CrossEntropyLoss()
