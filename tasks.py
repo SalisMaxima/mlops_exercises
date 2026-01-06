@@ -45,9 +45,18 @@ def preprocess_data(ctx: Context) -> None:
 
 
 @task
-def train(ctx: Context) -> None:
-    """Train model."""
-    ctx.run(f"uv run src/{PROJECT_NAME}/train.py", echo=True, pty=not WINDOWS)
+def train(ctx: Context, args: str = "") -> None:
+    """Train model.
+
+    Args:
+        args: Hydra config overrides (e.g., "training.epochs=5 model.dropout=0.4")
+
+    Examples:
+        invoke train
+        invoke train --args "training.epochs=5"
+        invoke train --args "optimizer.lr=0.01 model.dropout=0.3"
+    """
+    ctx.run(f"uv run src/{PROJECT_NAME}/train.py {args}", echo=True, pty=not WINDOWS)
 
 
 @task
