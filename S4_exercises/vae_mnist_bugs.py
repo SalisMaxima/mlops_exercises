@@ -13,7 +13,8 @@ from torchvision.utils import save_image
 
 # Model Hyperparameters
 dataset_path = "datasets"
-cuda = True
+# cuda = True. --Bug number 1
+cuda = torch.cuda.is_available()  # Corrected line
 DEVICE = torch.device("cuda" if cuda else "cpu")
 batch_size = 100
 x_dim = 784
@@ -49,13 +50,18 @@ class Encoder(nn.Module):
         h_ = torch.relu(self.FC_input(x))
         mean = self.FC_mean(h_)
         log_var = self.FC_var(h_)
-        z = self.reparameterization(mean, log_var)
+        std = torch.exp(0.5 * log_var)  # Missing line to compute std part of math bug fix
+        # z = self.reparameterization(mean, log_var) Math bug line
+        z = self.reparameterization(mean, std)  # Corrected line
         return z, mean, log_var
 
-    def reparameterization(self, mean, var):
+    def reparameterization(self, mean, std):
         """Reparameterization trick to sample z values."""
-        epsilon = torch.randn(*var.shape)
-        return mean + var * epsilon
+        # epsilon = torch.randn(*var.shape) Device bug line since it may not be on the correct device and it uses var instead of std
+        epsilon = torch.randn_like(
+            std
+        )  # Corrected line where the device is same as input std and uses std instead of var
+        return mean + std * epsilon
 
 
 class Decoder(nn.Module):
@@ -64,7 +70,9 @@ class Decoder(nn.Module):
     def __init__(self, latent_dim, hidden_dim, output_dim) -> None:
         super().__init__()
         self.FC_hidden = nn.Linear(latent_dim, hidden_dim)
-        self.FC_output = nn.Linear(latent_dim, output_dim)
+        # self.FC_output = nn.Linear(latent_dim, output_dim) # Bug number 2
+        # Corrected line
+        self.FC_output = nn.Linear(hidden_dim, output_dim)
 
     def forward(self, x):
         """Forward pass of the decoder module."""
@@ -115,6 +123,8 @@ for epoch in range(epochs):
         x = x.view(batch_size, x_dim)
         x = x.to(DEVICE)
 
+        # Bug fix -- missing optimizer.zero_grad() line
+        optimizer.zero_grad()  # Corrected line
         x_hat, mean, log_var = model(x)
         loss = loss_function(x, x_hat, mean, log_var)
 

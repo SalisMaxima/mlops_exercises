@@ -44,9 +44,7 @@ def train(cfg: DictConfig) -> None:
 
     # Load data
     train_set, _ = corrupt_mnist()
-    train_dataloader = torch.utils.data.DataLoader(
-        train_set, batch_size=cfg.training.batch_size, shuffle=True
-    )
+    train_dataloader = torch.utils.data.DataLoader(train_set, batch_size=cfg.training.batch_size, shuffle=True)
 
     # Loss and optimizer
     loss_fn = torch.nn.CrossEntropyLoss()

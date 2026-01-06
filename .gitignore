@@ -200,3 +200,10 @@ CLAUDE.md
 
 # Hydra outputs
 S3_exercises/outputs/
+
+# Profiling files
+*.prof
+profile.txt
+
+# MNIST dataset
+datasets/

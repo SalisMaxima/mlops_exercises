@@ -7,7 +7,7 @@ import torch
 import torch.nn as nn
 import torchvision.transforms as transforms
 from torch.optim import Adam
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, TensorDataset
 from torchvision.datasets import MNIST
 from torchvision.utils import save_image
 
@@ -26,11 +26,17 @@ epochs = 5
 # Data loading
 mnist_transform = transforms.Compose([transforms.ToTensor()])
 
-train_dataset = MNIST(dataset_path, transform=mnist_transform, train=True, download=True)
-test_dataset = MNIST(dataset_path, transform=mnist_transform, train=False, download=True)
+# Load datasets - no transform needed
+train_dataset = MNIST(dataset_path, train=True, download=True)
+test_dataset = MNIST(dataset_path, train=False, download=True)
 
-train_loader = DataLoader(dataset=train_dataset, batch_size=batch_size, shuffle=True)
-test_loader = DataLoader(dataset=test_dataset, batch_size=batch_size, shuffle=False)
+# Direct access to internal tensors, normalize to [0,1]
+train_dataset = TensorDataset(train_dataset.data.float() / 255.0, train_dataset.targets)
+test_dataset = TensorDataset(test_dataset.data.float() / 255.0, test_dataset.targets)
+
+# DataLoaders with pin_memory for faster GPU transfer
+train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, pin_memory=True)
+test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, pin_memory=True)
 
 
 class Encoder(nn.Module):
