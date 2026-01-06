@@ -277,7 +277,8 @@ def confusion(
 
     # Select diverse misclassifications
     if len(misclassified_indices) > n_show:
-        selected_indices = np.random.choice(misclassified_indices, n_show, replace=False)
+        rng = np.random.default_rng()
+        selected_indices = rng.choice(misclassified_indices, n_show, replace=False)
     else:
         selected_indices = misclassified_indices
 

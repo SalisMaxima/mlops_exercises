@@ -7,13 +7,15 @@ class MyAwesomeModel(nn.Module):
 
     def __init__(
         self,
-        conv_channels: list[int] = [32, 64, 128],
+        conv_channels: list[int] | None = None,
         fc_hidden: int = 256,
         dropout: float = 0.5,
         kernel_size: int = 3,
     ) -> None:
         super().__init__()
 
+        if conv_channels is None:
+            conv_channels = [32, 64, 128]
         c1, c2, c3 = conv_channels
 
         self.conv_layers = nn.Sequential(
@@ -38,9 +40,7 @@ class MyAwesomeModel(nn.Module):
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Forward pass."""
-        x = self.conv_layers(x)
-        x = self.fc_layers(x)
-        return x
+        return self.fc_layers(self.conv_layers(x))
 
 
 if __name__ == "__main__":
