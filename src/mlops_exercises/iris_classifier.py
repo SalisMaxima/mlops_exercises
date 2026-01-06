@@ -56,7 +56,7 @@ def svm(
     # Save the model
     output_path = Path(output)
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    with open(output_path, "wb") as f:
+    with output_path.open("wb") as f:
         pickle.dump({"model": model, "scaler": scaler}, f)
     print(f"\nModel saved to {output_path}")
 
@@ -101,7 +101,7 @@ def knn(
     # Save the model
     output_path = Path(output)
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    with open(output_path, "wb") as f:
+    with output_path.open("wb") as f:
         pickle.dump({"model": model, "scaler": scaler}, f)
     print(f"\nModel saved to {output_path}")
 
@@ -121,7 +121,7 @@ def evaluate(model_path: str = typer.Argument(..., help="Path to the saved model
 
     # Load the model
     print(f"Loading model from {model_path}...")
-    with open(model_file, "rb") as f:
+    with model_file.open("rb") as f:
         saved_data = pickle.load(f)
 
     model = saved_data["model"]

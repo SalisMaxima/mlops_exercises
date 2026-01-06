@@ -110,7 +110,7 @@ def show_image_and_target(images: torch.Tensor, target: torch.Tensor) -> None:
     row_col = int(len(images) ** 0.5)
     fig = plt.figure(figsize=(10.0, 10.0))
     grid = ImageGrid(fig, 111, nrows_ncols=(row_col, row_col), axes_pad=0.3)
-    for ax, im, label in zip(grid, images, target):
+    for ax, im, label in zip(grid, images, target, strict=False):
         ax.imshow(im.squeeze(), cmap="gray")
         ax.set_title(f"Label: {label.item()}")
         ax.axis("off")
