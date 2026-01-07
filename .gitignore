@@ -208,5 +208,8 @@ profile.txt
 trace.json
 log/
 
+# Wandb experiment tracking
+wandb/
+
 # MNIST dataset
 datasets/

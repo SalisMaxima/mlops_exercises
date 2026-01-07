@@ -7,6 +7,7 @@ import torch
 from loguru import logger
 from omegaconf import DictConfig
 
+import wandb
 from mlops_exercises.data import corrupt_mnist
 from mlops_exercises.model import MyAwesomeModel
 
@@ -56,6 +57,23 @@ def train(cfg: DictConfig) -> None:
     logger.info(f"Training on {device}")
     logger.info(f"Configuration:\n{cfg}")
 
+    # Initialize wandb
+    wandb.init(
+        project="mlops_exercises",
+        config={
+            "learning_rate": cfg.optimizer.lr,
+            "batch_size": cfg.training.batch_size,
+            "epochs": cfg.training.epochs,
+            "seed": cfg.training.seed,
+            "conv_channels": list(cfg.model.conv_channels),
+            "fc_hidden": cfg.model.fc_hidden,
+            "dropout": cfg.model.dropout,
+            "kernel_size": cfg.model.kernel_size,
+            "architecture": "MyAwesomeModel",
+            "dataset": "corrupt_mnist",
+        },
+    )
+
     # Set seed for reproducibility
     torch.manual_seed(cfg.training.seed)
     if device.type == "cuda":
@@ -87,15 +105,29 @@ def train(cfg: DictConfig) -> None:
         for i, (img, target) in enumerate(train_dataloader):
             img, target = img.to(device), target.to(device)
 
+            # Log sample images every 5 epochs (first batch only)
+            if epoch % 5 == 0 and i == 0:
+                wandb.log({"examples": [wandb.Image(img[j].view(1, 28, 28)) for j in range(min(8, len(img)))]})
+
             optimizer.zero_grad()
             y_pred = model(img)
             loss = loss_fn(y_pred, target)
             loss.backward()
+
+            # Log gradient histograms every 100 iterations
+            if i % 100 == 0:
+                for name, param in model.named_parameters():
+                    if param.grad is not None:
+                        wandb.log({f"gradients/{name}": wandb.Histogram(param.grad.cpu())})
+
             optimizer.step()
 
             statistics["train_loss"].append(loss.item())
             accuracy = (y_pred.argmax(dim=1) == target).float().mean().item()
             statistics["train_accuracy"].append(accuracy)
+
+            # Log metrics to wandb
+            wandb.log({"train_loss": loss.item(), "train_accuracy": accuracy, "epoch": epoch})
 
             if i % 100 == 0:
                 logger.info(f"Epoch {epoch}, iter {i}, loss: {loss.item():.4f}, acc: {accuracy:.4f}")
@@ -114,9 +146,15 @@ def train(cfg: DictConfig) -> None:
     axs[1].plot(statistics["train_accuracy"])
     axs[1].set_title("Train accuracy")
 
+    # Log matplotlib figure to wandb
+    wandb.log({"training_curves": wandb.Image(fig)})
+
     figures_path = Path(output_dir) / "training_statistics.png"
     fig.savefig(figures_path)
     logger.info(f"Training plot saved to {figures_path}")
+
+    # Finish wandb run
+    wandb.finish()
 
 
 if __name__ == "__main__":
