@@ -204,6 +204,9 @@ S3_exercises/outputs/
 # Profiling files
 *.prof
 profile.txt
+*.trace.json
+trace.json
+log/
 
 # MNIST dataset
 datasets/
