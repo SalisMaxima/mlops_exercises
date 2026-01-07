@@ -1,15 +1,35 @@
-import logging
+import sys
 from pathlib import Path
 
 import hydra
 import matplotlib.pyplot as plt
 import torch
+from loguru import logger
 from omegaconf import DictConfig
 
 from mlops_exercises.data import corrupt_mnist
 from mlops_exercises.model import MyAwesomeModel
 
-log = logging.getLogger(__name__)
+
+def configure_logging(output_dir: str) -> None:
+    """Configure loguru to save logs in Hydra's output directory."""
+    logger.remove()  # Remove default handler
+
+    # Add file handler that saves to Hydra's output directory
+    log_path = Path(output_dir) / "training.log"
+    logger.add(
+        log_path,
+        level="DEBUG",
+        rotation="100 MB",
+        retention=5,
+        compression="gz",
+        format="{time:YYYY-MM-DD HH:mm:ss} | {level: <8} | {name}:{function}:{line} | {message}",
+    )
+
+    # Add console handler for INFO and above
+    logger.add(sys.stderr, level="INFO")
+
+    logger.info(f"Logging configured. Logs will be saved to {log_path}")
 
 
 def get_device() -> torch.device:
@@ -25,12 +45,16 @@ def get_device() -> torch.device:
     return torch.device("cpu")
 
 
-@hydra.main(config_path="../../configs", config_name="config", version_base=None)
+@hydra.main(config_path="../../configs", config_name="config", version_base="1.3")
 def train(cfg: DictConfig) -> None:
     """Train a model on MNIST."""
+    # Get Hydra's output directory and configure loguru
+    output_dir = hydra.core.hydra_config.HydraConfig.get().runtime.output_dir
+    configure_logging(output_dir)
+
     device = get_device()
-    log.info(f"Training on {device}")
-    log.info(f"Configuration:\n{cfg}")
+    logger.info(f"Training on {device}")
+    logger.info(f"Configuration:\n{cfg}")
 
     # Set seed for reproducibility
     torch.manual_seed(cfg.training.seed)
@@ -44,7 +68,7 @@ def train(cfg: DictConfig) -> None:
         dropout=cfg.model.dropout,
         kernel_size=cfg.model.kernel_size,
     ).to(device)
-    log.info(f"Model:\n{model}")
+    logger.info(f"Model:\n{model}")
 
     # Load data
     train_set, _ = corrupt_mnist()
@@ -53,7 +77,7 @@ def train(cfg: DictConfig) -> None:
     # Loss and optimizer
     loss_fn = torch.nn.CrossEntropyLoss()
     optimizer = hydra.utils.instantiate(cfg.optimizer, params=model.parameters())
-    log.info(f"Using optimizer: {optimizer.__class__.__name__}")
+    logger.info(f"Using optimizer: {optimizer.__class__.__name__}")
 
     statistics = {"train_loss": [], "train_accuracy": []}
 
@@ -74,15 +98,14 @@ def train(cfg: DictConfig) -> None:
             statistics["train_accuracy"].append(accuracy)
 
             if i % 100 == 0:
-                log.info(f"Epoch {epoch}, iter {i}, loss: {loss.item():.4f}, acc: {accuracy:.4f}")
+                logger.info(f"Epoch {epoch}, iter {i}, loss: {loss.item():.4f}, acc: {accuracy:.4f}")
 
-    log.info("Training complete")
+    logger.info("Training complete")
 
     # Save model (use Hydra output dir)
-    output_dir = hydra.core.hydra_config.HydraConfig.get().runtime.output_dir
     model_path = Path(output_dir) / "model.pth"
     torch.save(model.state_dict(), model_path)
-    log.info(f"Model saved to {model_path}")
+    logger.info(f"Model saved to {model_path}")
 
     # Save training plots
     fig, axs = plt.subplots(1, 2, figsize=(15, 5))
@@ -93,7 +116,7 @@ def train(cfg: DictConfig) -> None:
 
     figures_path = Path(output_dir) / "training_statistics.png"
     fig.savefig(figures_path)
-    log.info(f"Training plot saved to {figures_path}")
+    logger.info(f"Training plot saved to {figures_path}")
 
 
 if __name__ == "__main__":
