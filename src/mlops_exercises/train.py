@@ -11,6 +11,11 @@ from omegaconf import DictConfig
 from mlops_exercises.data import corrupt_mnist
 from mlops_exercises.model import MyAwesomeModel
 
+# Compute absolute path to configs directory (project_root/configs)
+# This works whether running as installed package or directly
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
+_CONFIG_PATH = str(_PROJECT_ROOT / "configs")
+
 
 def configure_logging(output_dir: str) -> None:
     """Configure loguru to save logs in Hydra's output directory."""
@@ -46,7 +51,7 @@ def get_device() -> torch.device:
     return torch.device("cpu")
 
 
-@hydra.main(config_path="../../configs", config_name="config", version_base="1.3")
+@hydra.main(config_path=_CONFIG_PATH, config_name="config", version_base="1.3")
 def train(cfg: DictConfig) -> None:
     """Train a model on MNIST."""
     # Get Hydra's output directory and configure loguru
@@ -138,6 +143,28 @@ def train(cfg: DictConfig) -> None:
     model_path = Path(output_dir) / "model.pth"
     torch.save(model.state_dict(), model_path)
     logger.info(f"Model saved to {model_path}")
+
+    # Log model as a wandb artifact
+    # Artifacts are versioned collections of files that track your model's lineage
+    artifact = wandb.Artifact(
+        name="corrupt_mnist_model",  # Name used to identify this artifact
+        type="model",  # Type categorizes artifacts (model, dataset, code, etc.)
+        description="A CNN model trained to classify corrupt MNIST images",
+        metadata={
+            # Store training config and final metrics with the artifact
+            "epochs": cfg.training.epochs,
+            "batch_size": cfg.training.batch_size,
+            "learning_rate": cfg.optimizer.lr,
+            "final_loss": statistics["train_loss"][-1],
+            "final_accuracy": statistics["train_accuracy"][-1],
+            "architecture": "MyAwesomeModel",
+            "conv_channels": list(cfg.model.conv_channels),
+            "fc_hidden": cfg.model.fc_hidden,
+        },
+    )
+    artifact.add_file(str(model_path))  # Add the saved model file to the artifact
+    wandb.log_artifact(artifact)  # Upload artifact to wandb
+    logger.info(f"Model artifact logged to wandb: {artifact.name}")
 
     # Save training plots
     fig, axs = plt.subplots(1, 2, figsize=(15, 5))
