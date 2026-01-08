@@ -4,10 +4,10 @@ from pathlib import Path
 import hydra
 import matplotlib.pyplot as plt
 import torch
+import wandb
 from loguru import logger
 from omegaconf import DictConfig
 
-import wandb
 from mlops_exercises.data import corrupt_mnist
 from mlops_exercises.model import MyAwesomeModel
 
