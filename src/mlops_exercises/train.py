@@ -11,8 +11,7 @@ from omegaconf import DictConfig
 from mlops_exercises.data import corrupt_mnist
 from mlops_exercises.model import MyAwesomeModel
 
-# Compute absolute path to configs directory (project_root/configs)
-# This works whether running as installed package or directly
+# Find project root and config path for consistency for Hydra
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 _CONFIG_PATH = str(_PROJECT_ROOT / "configs")
 
