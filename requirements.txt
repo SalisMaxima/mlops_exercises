@@ -150,7 +150,7 @@ torchvision==0.24.1+cu130 ; (python_full_version >= '3.15' and sys_platform == '
     # via mlops-exercises
 triton==3.5.1 ; sys_platform == 'linux'
     # via torch
-typer==0.21.0
+typer==0.21.1
     # via mlops-exercises
 typing-extensions==4.15.0
     # via
