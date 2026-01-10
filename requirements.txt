@@ -64,7 +64,7 @@ nvidia-cuda-cupti==13.1.75 ; sys_platform == 'linux'
     # via torch
 nvidia-cuda-nvrtc==13.0.48 ; sys_platform == 'linux'
     # via torch
-nvidia-cuda-runtime==13.0.48 ; sys_platform == 'linux'
+nvidia-cuda-runtime==13.1.80 ; sys_platform == 'linux'
     # via torch
 nvidia-cudnn-cu13==9.13.0.50 ; sys_platform == 'linux'
     # via torch
