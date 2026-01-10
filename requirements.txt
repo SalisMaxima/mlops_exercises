@@ -92,7 +92,7 @@ nvidia-nvjitlink==13.0.39 ; sys_platform == 'linux'
     #   torch
 nvidia-nvshmem-cu13==3.3.24 ; sys_platform == 'linux'
     # via torch
-nvidia-nvtx==13.0.39 ; sys_platform == 'linux'
+nvidia-nvtx==13.1.68 ; sys_platform == 'linux'
     # via torch
 packaging==24.1
     # via matplotlib
