@@ -1,0 +1,14 @@
+# Configuration for model evaluation
+# Usage: invoke evaluate --args "model_checkpoint=models/my_model.pth"
+
+model_checkpoint: "models/model.pth"  # Path to the model checkpoint
+
+model:
+  # Model architecture parameters (must match the trained model)
+  conv_channels: [32, 64, 128]
+  fc_hidden: 256
+  dropout: 0.5
+  kernel_size: 3
+
+evaluation:
+  batch_size: 32

@@ -1,0 +1,18 @@
+wandb:
+  entity: mathiashl-danmarks-tekniske-universitet-dtu-org
+  project: mlops_exercises
+  registry_name: corrupt_mnist_model
+  alias: latest
+model:
+  conv_channels:
+  - 32
+  - 64
+  - 128
+  fc_hidden: 256
+  dropout: 0.5
+  kernel_size: 3
+output:
+  artifact_dir: artifacts
+  model_dir: models
+  evaluate: false
+  batch_size: 32

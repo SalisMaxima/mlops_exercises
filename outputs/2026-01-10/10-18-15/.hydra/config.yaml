@@ -1,0 +1,21 @@
+wandb:
+  artifact_path: null
+  entity: mathiashl-danmarks-tekniske-universitet-dtu-org
+  collection: MLOps CorruptMNIST models
+  registry_name: Experimential Models
+  alias: ExpM1
+  project: mlops_exercises
+model:
+  conv_channels:
+  - 32
+  - 64
+  - 128
+  fc_hidden: 256
+  dropout: 0.5
+  kernel_size: 3
+output:
+  artifact_dir: artifacts
+  model_dir: models
+  model_name: null
+  evaluate: true
+  batch_size: 32

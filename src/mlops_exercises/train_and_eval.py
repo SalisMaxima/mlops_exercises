@@ -15,8 +15,6 @@ Usage:
 import sys
 from pathlib import Path
 
-import hydra
-import torch
 import wandb
 from hydra import compose, initialize_config_dir
 from hydra.core.global_hydra import GlobalHydra

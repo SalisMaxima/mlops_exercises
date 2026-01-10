@@ -1,0 +1,28 @@
+# Configuration for consuming models from W&B Model Registry
+# Usage: invoke consume-model --args "output.evaluate=true"
+
+wandb:
+  # Option 1: Specify full artifact path directly (recommended for complex names)
+  # Format: "<entity>/wandb-registry-<collection>/<model_name>:<alias>"
+  artifact_path: null
+
+  # Option 2: Build path from components (used if artifact_path is null)
+  entity: "mathiashl-danmarks-tekniske-universitet-dtu-org"
+  collection: "MLOps CorruptMNIST models"
+  registry_name: "Experimential Models"
+  alias: "ExpM1"
+  project: "mlops_exercises"  # Fallback project for regular artifacts
+
+model:
+  # Model architecture parameters (must match the trained model)
+  conv_channels: [32, 64, 128]
+  fc_hidden: 256
+  dropout: 0.5
+  kernel_size: 3
+
+output:
+  artifact_dir: "artifacts"  # Directory to download the artifact temporarily
+  model_dir: "models"  # Directory to save the model
+  model_name: null  # Custom name for saved model (null uses registry_name)
+  evaluate: false  # Whether to evaluate on test set
+  batch_size: 32  # Batch size for evaluation

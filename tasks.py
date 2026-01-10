@@ -194,16 +194,13 @@ def sweep_run(
         if not entity:
             # Auto-detect entity from wandb
             import wandb
+
             api = wandb.Api()
             entity = api.default_entity
             print(f"Using W&B entity: {entity}")
 
-        if "/" in sweep_id:
-            # Has project/sweep_id format
-            full_sweep_id = f"{entity}/{sweep_id}"
-        else:
-            # Just sweep_id
-            full_sweep_id = f"{entity}/{project}/{sweep_id}"
+        # Has project/sweep_id format or just sweep_id
+        full_sweep_id = f"{entity}/{sweep_id}" if "/" in sweep_id else f"{entity}/{project}/{sweep_id}"
 
     ctx.run(f"wandb agent {count_arg} {full_sweep_id}", echo=True, pty=not WINDOWS)
 
@@ -232,7 +229,7 @@ def sweep_link_best(
     dry_run_flag = "--dry-run" if dry_run else ""
     ctx.run(
         f"uv run python src/{PROJECT_NAME}/link_best_models.py {sweep_id} "
-        f"--top {top} --collection \"{collection}\" {dry_run_flag}",
+        f'--top {top} --collection "{collection}" {dry_run_flag}',
         echo=True,
         pty=not WINDOWS,
     )
@@ -263,7 +260,22 @@ def model_download(
     verify_flag = "--verify" if verify else ""
     ctx.run(
         f"uv run python src/{PROJECT_NAME}/download_model.py "
-        f"--alias {alias} --collection \"{collection}\" --output {output} {verify_flag}",
+        f'--alias {alias} --collection "{collection}" --output {output} {verify_flag}',
         echo=True,
         pty=not WINDOWS,
     )
+
+
+@task
+def consume_model(ctx: Context, args: str = "") -> None:
+    """Download and load a model from W&B Model Registry (Hydra-based).
+
+    Args:
+        args: Hydra config overrides (e.g., "output.evaluate=true wandb.alias=v2")
+
+    Examples:
+        invoke consume-model
+        invoke consume-model --args "output.evaluate=true"
+        invoke consume-model --args "wandb.alias=v2 output.evaluate=true"
+    """
+    ctx.run(f"uv run src/{PROJECT_NAME}/consume_model.py {args}", echo=True, pty=not WINDOWS)

@@ -1,22 +1,31 @@
-from typing import Optional
+"""Evaluate a trained model on the test set."""
 
 import torch
 import typer
 import wandb
+from loguru import logger
 
 from mlops_exercises.data import corrupt_mnist
 from mlops_exercises.model import MyAwesomeModel
 
-DEVICE = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu")
-
 app = typer.Typer()
+
+
+def get_device() -> torch.device:
+    """Get the best available device."""
+    if torch.cuda.is_available():
+        return torch.device("cuda")
+    if torch.backends.mps.is_available():
+        return torch.device("mps")
+    return torch.device("cpu")
 
 
 def evaluate_model(
     model_checkpoint: str,
-    model_config: Optional[dict] = None,
-    device: Optional[torch.device] = None,
+    model_config: dict | None = None,
+    device: torch.device | None = None,
     log_to_wandb: bool = False,
+    batch_size: int = 32,
 ) -> float:
     """
     Core evaluation logic. Can be called standalone or from a sweep wrapper.
@@ -27,14 +36,15 @@ def evaluate_model(
                       If None, uses default model architecture
         device: Torch device to evaluate on. If None, uses best available.
         log_to_wandb: Whether to log test_accuracy to wandb (assumes wandb is initialized)
+        batch_size: Batch size for evaluation
 
     Returns:
         Test accuracy as a float between 0 and 1
     """
     if device is None:
-        device = DEVICE
+        device = get_device()
 
-    print(f"Evaluating model from {model_checkpoint}")
+    logger.info(f"Evaluating model from {model_checkpoint}")
 
     # Initialize model with config if provided, otherwise use defaults
     if model_config:
@@ -50,7 +60,7 @@ def evaluate_model(
     model.load_state_dict(torch.load(model_checkpoint, map_location=device, weights_only=True))
 
     _, test_set = corrupt_mnist()
-    test_dataloader = torch.utils.data.DataLoader(test_set, batch_size=32)
+    test_dataloader = torch.utils.data.DataLoader(test_set, batch_size=batch_size)
 
     model.eval()
     correct, total = 0, 0
@@ -63,7 +73,7 @@ def evaluate_model(
             total += target.size(0)
 
     test_accuracy = correct / total
-    print(f"Test accuracy: {test_accuracy:.4f} ({int(correct)}/{int(total)})")
+    logger.info(f"Test accuracy: {test_accuracy:.4f} ({int(correct)}/{int(total)})")
 
     # Log to wandb if requested (assumes wandb.init() was already called)
     if log_to_wandb:
@@ -78,6 +88,7 @@ def evaluate_model(
 def evaluate(
     model_checkpoint: str = typer.Argument("models/model.pth"),
     use_wandb: bool = typer.Option(False, "--wandb", help="Log results to W&B"),
+    batch_size: int = typer.Option(32, "--batch-size", "-b", help="Batch size for evaluation"),
 ) -> None:
     """Evaluate a trained model (standalone entry point)."""
     if use_wandb:
@@ -90,6 +101,7 @@ def evaluate(
     test_accuracy = evaluate_model(
         model_checkpoint=model_checkpoint,
         log_to_wandb=use_wandb,
+        batch_size=batch_size,
     )
 
     if use_wandb:
