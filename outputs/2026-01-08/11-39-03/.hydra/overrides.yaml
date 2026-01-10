@@ -1,0 +1,4 @@
+- model.dropout=0.4390535040741601
+- model.kernel_size=5
+- optimizer.lr=0.00020652816263233876
+- training.batch_size=32

@@ -143,3 +143,127 @@ def dvc_add(ctx: Context, folder: str, message: str) -> None:
     ctx.run("dvc push", echo=True, pty=not WINDOWS)
 
     print(f"\n✓ Successfully added {folder} to DVC and pushed to remotes!")
+
+
+# W&B Sweep commands
+@task
+def sweep_init(ctx: Context, config: str = "configs/sweep.yaml", project: str = "mlops_exercises") -> None:
+    """Initialize a W&B sweep.
+
+    Args:
+        config: Path to sweep configuration YAML file
+        project: W&B project name
+
+    Example:
+        invoke sweep-init
+        invoke sweep-init --config configs/sweep.yaml --project mlops_exercises
+    """
+    ctx.run(f"wandb sweep {config} --project {project}", echo=True, pty=not WINDOWS)
+    print("\n✓ Sweep initialized! Copy the sweep ID and run: invoke sweep-run --sweep-id <ID>")
+
+
+@task
+def sweep_run(
+    ctx: Context,
+    sweep_id: str,
+    entity: str = "",
+    project: str = "mlops_exercises",
+    count: int = 0,
+) -> None:
+    """Run a W&B sweep agent.
+
+    Args:
+        sweep_id: The sweep ID from sweep-init (e.g., 'abc123xyz')
+        entity: W&B entity (username or team). Auto-detected if not provided.
+        project: W&B project name
+        count: Number of runs to execute (0 = unlimited, uses run_cap from config)
+
+    Example:
+        invoke sweep-run --sweep-id abc123xyz
+        invoke sweep-run --sweep-id abc123xyz --entity myusername
+        invoke sweep-run --sweep-id abc123xyz --count 5
+    """
+    count_arg = f"--count {count}" if count > 0 else ""
+
+    # Build full sweep path
+    if "/" in sweep_id and sweep_id.count("/") >= 2:
+        # Already full path: entity/project/sweep_id
+        full_sweep_id = sweep_id
+    else:
+        # Need to get entity
+        if not entity:
+            # Auto-detect entity from wandb
+            import wandb
+            api = wandb.Api()
+            entity = api.default_entity
+            print(f"Using W&B entity: {entity}")
+
+        if "/" in sweep_id:
+            # Has project/sweep_id format
+            full_sweep_id = f"{entity}/{sweep_id}"
+        else:
+            # Just sweep_id
+            full_sweep_id = f"{entity}/{project}/{sweep_id}"
+
+    ctx.run(f"wandb agent {count_arg} {full_sweep_id}", echo=True, pty=not WINDOWS)
+
+
+@task
+def sweep_link_best(
+    ctx: Context,
+    sweep_id: str,
+    top: int = 3,
+    collection: str = "Best-performing-models",
+    dry_run: bool = False,
+) -> None:
+    """Link top performing models from a sweep to the model registry.
+
+    Args:
+        sweep_id: The sweep ID (e.g., 'abc123xyz' or 'entity/project/abc123xyz')
+        top: Number of top models to link
+        collection: Registry collection name
+        dry_run: Preview without making changes
+
+    Example:
+        invoke sweep-link-best --sweep-id abc123xyz
+        invoke sweep-link-best --sweep-id abc123xyz --top 5 --dry-run
+        invoke sweep-link-best --sweep-id abc123xyz --collection "Best-performing-models"
+    """
+    dry_run_flag = "--dry-run" if dry_run else ""
+    ctx.run(
+        f"uv run python src/{PROJECT_NAME}/link_best_models.py {sweep_id} "
+        f"--top {top} --collection \"{collection}\" {dry_run_flag}",
+        echo=True,
+        pty=not WINDOWS,
+    )
+
+
+@task
+def model_download(
+    ctx: Context,
+    alias: str = "best",
+    collection: str = "Best-performing-models",
+    output: str = "models/registry",
+    verify: bool = False,
+) -> None:
+    """Download a model from the W&B model registry.
+
+    Args:
+        alias: Model alias (e.g., 'best', 'top-1', 'latest', 'v0')
+        collection: Registry collection name
+        output: Directory to download model to
+        verify: Run inference on test data to verify the model
+
+    Example:
+        invoke model-download
+        invoke model-download --alias top-1
+        invoke model-download --alias best --verify
+        invoke model-download --alias v0 --output models/production
+    """
+    verify_flag = "--verify" if verify else ""
+    ctx.run(
+        f"uv run python src/{PROJECT_NAME}/download_model.py "
+        f"--alias {alias} --collection \"{collection}\" --output {output} {verify_flag}",
+        echo=True,
+        pty=not WINDOWS,
+    )

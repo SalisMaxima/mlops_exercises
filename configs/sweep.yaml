@@ -1,0 +1,40 @@
+# W&B Hyperparameter Sweep Configuration
+# Run with: wandb sweep configs/sweep.yaml --project mlops_exercises
+# Then: wandb agent <sweep-id>
+
+program: src/mlops_exercises/train_and_eval.py
+method: bayes  # Bayesian optimization - smarter than random/grid
+run_cap: 20    # Stop after 20 runs
+
+metric:
+  name: test_accuracy
+  goal: maximize
+
+parameters:
+  # Learning rate - log uniform distribution (good for learning rates)
+  optimizer.lr:
+    distribution: log_uniform_values
+    min: 0.0001
+    max: 0.01
+
+  # Batch size - discrete values
+  training.batch_size:
+    values: [16, 32, 64]
+
+  # Dropout rate - uniform distribution
+  model.dropout:
+    distribution: uniform
+    min: 0.2
+    max: 0.6
+
+  # Kernel size - discrete values
+  model.kernel_size:
+    values: [3, 5]
+
+# Custom command to work with Hydra overrides
+# ${args_no_hyphens} passes params as key=value (Hydra style) instead of --key value
+command:
+  - ${env}
+  - python
+  - ${program}
+  - ${args_no_hyphens}

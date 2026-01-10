@@ -50,38 +50,33 @@ def get_device() -> torch.device:
     return torch.device("cpu")
 
 
-@hydra.main(config_path=_CONFIG_PATH, config_name="config", version_base="1.3")
-def train(cfg: DictConfig) -> None:
-    """Train a model on MNIST."""
-    # Get Hydra's output directory and configure loguru
-    output_dir = hydra.core.hydra_config.HydraConfig.get().runtime.output_dir
-    configure_logging(output_dir)
+def train_model(
+    cfg: DictConfig,
+    output_dir: str,
+    device: torch.device,
+    wandb_run=None,
+) -> str:
+    """
+    Core training logic. Can be called standalone or from a sweep wrapper.
 
-    device = get_device()
+    Args:
+        cfg: Hydra configuration
+        output_dir: Directory to save model and artifacts
+        device: Torch device to train on
+        wandb_run: Optional existing wandb run. If None, assumes wandb is already initialized.
+
+    Returns:
+        Path to the saved model checkpoint
+    """
     logger.info(f"Training on {device}")
     logger.info(f"Configuration:\n{cfg}")
-
-    # Initialize wandb
-    wandb.init(
-        project="mlops_exercises",
-        config={
-            "learning_rate": cfg.optimizer.lr,
-            "batch_size": cfg.training.batch_size,
-            "epochs": cfg.training.epochs,
-            "seed": cfg.training.seed,
-            "conv_channels": list(cfg.model.conv_channels),
-            "fc_hidden": cfg.model.fc_hidden,
-            "dropout": cfg.model.dropout,
-            "kernel_size": cfg.model.kernel_size,
-            "architecture": "MyAwesomeModel",
-            "dataset": "corrupt_mnist",
-        },
-    )
 
     # Set seed for reproducibility
     torch.manual_seed(cfg.training.seed)
     if device.type == "cuda":
         torch.cuda.manual_seed(cfg.training.seed)
+
+    output_dir = Path(output_dir)
 
     # Initialize model with config parameters
     model = MyAwesomeModel(
@@ -138,8 +133,8 @@ def train(cfg: DictConfig) -> None:
 
     logger.info("Training complete")
 
-    # Save model (use Hydra output dir)
-    model_path = Path(output_dir) / "model.pth"
+    # Save model
+    model_path = output_dir / "model.pth"
     torch.save(model.state_dict(), model_path)
     logger.info(f"Model saved to {model_path}")
 
@@ -175,12 +170,53 @@ def train(cfg: DictConfig) -> None:
     # Log matplotlib figure to wandb
     wandb.log({"training_curves": wandb.Image(fig)})
 
-    figures_path = Path(output_dir) / "training_statistics.png"
+    figures_path = output_dir / "training_statistics.png"
     fig.savefig(figures_path)
+    plt.close(fig)
     logger.info(f"Training plot saved to {figures_path}")
+
+    return str(model_path)
+
+
+@hydra.main(config_path=_CONFIG_PATH, config_name="config", version_base="1.3")
+def train(cfg: DictConfig) -> None:
+    """Train a model on MNIST (standalone entry point)."""
+    # Get Hydra's output directory and configure loguru
+    output_dir = hydra.core.hydra_config.HydraConfig.get().runtime.output_dir
+    configure_logging(output_dir)
+
+    device = get_device()
+
+    # Initialize wandb with job_type for standalone training
+    run = wandb.init(
+        project="mlops_exercises",
+        job_type="train",
+        reinit=True,
+        config={
+            "learning_rate": cfg.optimizer.lr,
+            "batch_size": cfg.training.batch_size,
+            "epochs": cfg.training.epochs,
+            "seed": cfg.training.seed,
+            "conv_channels": list(cfg.model.conv_channels),
+            "fc_hidden": cfg.model.fc_hidden,
+            "dropout": cfg.model.dropout,
+            "kernel_size": cfg.model.kernel_size,
+            "architecture": "MyAwesomeModel",
+            "dataset": "corrupt_mnist",
+        },
+    )
+
+    # Log if running as part of a sweep
+    if run.sweep_id:
+        logger.info(f"Running as part of sweep: {run.sweep_id}")
+
+    # Run training
+    model_path = train_model(cfg, output_dir, device, wandb_run=run)
 
     # Finish wandb run
     wandb.finish()
+
+    logger.info(f"Training complete. Model saved to {model_path}")
 
 
 if __name__ == "__main__":
