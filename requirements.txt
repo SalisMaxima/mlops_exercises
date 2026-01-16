@@ -90,7 +90,7 @@ nvidia-nvjitlink==13.0.39 ; sys_platform == 'linux'
     #   nvidia-cusolver
     #   nvidia-cusparse
     #   torch
-nvidia-nvshmem-cu13==3.3.24 ; sys_platform == 'linux'
+nvidia-nvshmem-cu13==3.5.19 ; sys_platform == 'linux'
     # via torch
 nvidia-nvtx==13.1.68 ; sys_platform == 'linux'
     # via torch
