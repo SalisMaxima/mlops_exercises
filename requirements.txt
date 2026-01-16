@@ -82,7 +82,7 @@ nvidia-cusparse==12.6.2.49 ; sys_platform == 'linux'
     #   torch
 nvidia-cusparselt-cu13==0.8.1 ; sys_platform == 'linux'
     # via torch
-nvidia-nccl-cu13==2.27.7 ; sys_platform == 'linux'
+nvidia-nccl-cu13==2.29.2 ; sys_platform == 'linux'
     # via torch
 nvidia-nvjitlink==13.0.39 ; sys_platform == 'linux'
     # via
