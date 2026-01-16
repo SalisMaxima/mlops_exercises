@@ -96,7 +96,7 @@ nvidia-nvtx==13.1.68 ; sys_platform == 'linux'
     # via torch
 packaging==24.1
     # via matplotlib
-pillow==12.0.0
+pillow==12.1.0
     # via
     #   matplotlib
     #   torchvision
